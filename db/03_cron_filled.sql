@@ -4,7 +4,7 @@
 --
 -- Replace:
 --   http://api-gw:8000/functions/v1  e.g. http://kong:8000/functions/v1   (inside docker)
---   eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIiwiaXNzIjoic3VwYWJhc2UiLCJpYXQiOjE3ODY0NDc4NjYsImV4cCI6MjEwMTgwNzg2Nn0.X3SLU9ShCNBzlwY91D1CVoHsLHOfYOv6R6eJ8UpkhsQ
+--   eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIiwiaXNzIjoic3VwYWJhc2UiLCJpYXQiOjE3OTI2NDQxNTQsImV4cCI6MjEwODAwNDE1NH0.ipLk1d2riAsfPsf67ctnr1HaeOQdpX-KenK6e8rulxM
 -- ============================================================================
 
 CREATE EXTENSION IF NOT EXISTS pg_cron;
@@ -17,8 +17,8 @@ SELECT cron.schedule(
   '* * * * *',
   $$
   SELECT net.http_post(
-    url     := 'http://api-gw:8000/functions/v1/process-message',
-    headers := '{"Content-Type":"application/json","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIiwiaXNzIjoic3VwYWJhc2UiLCJpYXQiOjE3ODY0NDc4NjYsImV4cCI6MjEwMTgwNzg2Nn0.X3SLU9ShCNBzlwY91D1CVoHsLHOfYOv6R6eJ8UpkhsQ"}'::jsonb,
+    url     := 'http://api-gw:8000/functions/v1/process-message_Fee_international',
+    headers := '{"Content-Type":"application/json","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIiwiaXNzIjoic3VwYWJhc2UiLCJpYXQiOjE3OTI2NDQxNTQsImV4cCI6MjEwODAwNDE1NH0.ipLk1d2riAsfPsf67ctnr1HaeOQdpX-KenK6e8rulxM"}'::jsonb,
     body    := '{"trigger":"cron"}'::jsonb
   );
   $$
@@ -30,8 +30,8 @@ SELECT cron.schedule(
   '*/5 * * * *',
   $$
   SELECT net.http_post(
-    url     := 'http://api-gw:8000/functions/v1/send-followups',
-    headers := '{"Content-Type":"application/json","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIiwiaXNzIjoic3VwYWJhc2UiLCJpYXQiOjE3ODY0NDc4NjYsImV4cCI6MjEwMTgwNzg2Nn0.X3SLU9ShCNBzlwY91D1CVoHsLHOfYOv6R6eJ8UpkhsQ"}'::jsonb,
+    url     := 'http://api-gw:8000/functions/v1/send-followups_Fee_international',
+    headers := '{"Content-Type":"application/json","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIiwiaXNzIjoic3VwYWJhc2UiLCJpYXQiOjE3OTI2NDQxNTQsImV4cCI6MjEwODAwNDE1NH0.ipLk1d2riAsfPsf67ctnr1HaeOQdpX-KenK6e8rulxM"}'::jsonb,
     body    := '{}'::jsonb
   );
   $$

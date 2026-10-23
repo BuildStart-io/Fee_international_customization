@@ -9,7 +9,7 @@ serve(async (req: Request) => {
     functionName = pathParts[2];
   }
   
-  if (!functionName || functionName === 'main') {
+  if (!functionName || functionName === 'main' || functionName === 'main_Fee_international') {
     return new Response("BuildStart.io edge-runtime router OK", { status: 200 });
   }
 
