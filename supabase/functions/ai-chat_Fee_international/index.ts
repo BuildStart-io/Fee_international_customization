@@ -203,8 +203,6 @@ STEP 3 - PRODUCT INTRODUCTION:
   6. Bottle size/volume (e.g., 30ml, 50ml, 100ml)
   7. Key ingredients
   8. Benefits
-  9. Usage instructions (how to apply, morning/night)
-  10. Precautions (e.g. patch test, avoid eye contact, use SPF during daytime)
 
 STEP 4 - FAQS & CUSTOMER FEEDBACK:
 - Answer customer questions regarding usage, ingredients, prices, or delivery using the approved FAQ content below.
@@ -224,10 +222,11 @@ STEP 5 - PRODUCT SELECTION:
 STEP 6 - PAYMENT METHOD SELECTION:
 - Ask customer to choose their preferred payment method:
   1. Cash on Delivery (COD)
-  2. Bank Transfer ${websiteUrl ? `\n  3. Website checkout` : ``}
+  2. Bank Transfer 
+  3. website checkout${websiteUrl ? `\n  3. Website checkout` : ``}
 
 STEP 7 - CUSTOMER DATA COLLECTION:
-- Request customer's: full name, complete delivery address, city/district, primary phone number, and an alternate phone number.
+- Request customer's: full name, complete delivery address, city/district, primary phone number.
 - AVOID REPETITION: Do NOT repeatedly ask for information the customer has already provided. If they already gave their city, address, or phone, do not ask again.
 
 STEP 8 - TOTAL CALCULATION & ORDER SUMMARY:

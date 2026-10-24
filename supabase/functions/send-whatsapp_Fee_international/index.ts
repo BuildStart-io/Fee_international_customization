@@ -31,6 +31,26 @@ function toChatId(to: string): string {
 }
 
 
+function normalizeMediaUrlForWaha(url: string): string {
+  if (!url) return url;
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1") {
+      if (parsed.port === "9000") {
+        parsed.hostname = "minio";
+        return parsed.toString();
+      }
+      if (parsed.port === "8000") {
+        parsed.hostname = "api-gw";
+        return parsed.toString();
+      }
+    }
+  } catch {
+    // If not a parseable URL, return original
+  }
+  return url;
+}
+
 function filenameFromUrl(url: string): string {
   try {
     const u = new URL(url);
@@ -80,8 +100,9 @@ serve(async (req) => {
     let res: Response;
 
     if (url) {
-      const fileName = filenameFromUrl(url);
-      const file = { url, filename: fileName, mimetype: undefined as string | undefined };
+      const normalizedUrl = normalizeMediaUrlForWaha(url);
+      const fileName = filenameFromUrl(normalizedUrl);
+      const file = { url: normalizedUrl, filename: fileName, mimetype: undefined as string | undefined };
       const caption = message || "";
 
       switch (detectedType) {

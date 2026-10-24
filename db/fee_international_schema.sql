@@ -65,7 +65,7 @@ ALTER TYPE "Fee_international".plan_tier OWNER TO postgres;
 
 CREATE FUNCTION "Fee_international".can_read_usage(_user_id uuid) RETURNS boolean
     LANGUAGE sql STABLE SECURITY DEFINER
-    SET search_path TO '"Fee_international"'
+    SET search_path TO "Fee_international", public
     AS $$
   SELECT auth.uid() IS NULL
       OR auth.uid() = _user_id
@@ -82,7 +82,7 @@ ALTER FUNCTION "Fee_international".can_read_usage(_user_id uuid) OWNER TO postgr
 
 CREATE FUNCTION "Fee_international".enforce_order_limit() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
-    SET search_path TO '"Fee_international"'
+    SET search_path TO "Fee_international", public
     AS $$
 DECLARE
   current_count INT;
@@ -152,7 +152,7 @@ ALTER FUNCTION "Fee_international".enforce_order_limit() OWNER TO postgres;
 
 CREATE FUNCTION "Fee_international".get_ai_message_usage(_user_id uuid, _since timestamp with time zone) RETURNS integer
     LANGUAGE plpgsql STABLE SECURITY DEFINER
-    SET search_path TO '"Fee_international"'
+    SET search_path TO "Fee_international", public
     AS $$
 DECLARE c integer;
 BEGIN
@@ -175,7 +175,7 @@ ALTER FUNCTION "Fee_international".get_ai_message_usage(_user_id uuid, _since ti
 
 CREATE FUNCTION "Fee_international".get_contact_usage(_user_id uuid, _since timestamp with time zone) RETURNS integer
     LANGUAGE plpgsql STABLE SECURITY DEFINER
-    SET search_path TO '"Fee_international"'
+    SET search_path TO "Fee_international", public
     AS $$
 DECLARE c integer;
 BEGIN
@@ -198,7 +198,7 @@ ALTER FUNCTION "Fee_international".get_contact_usage(_user_id uuid, _since times
 
 CREATE FUNCTION "Fee_international".get_staff_owner_id(_user_id uuid) RETURNS uuid
     LANGUAGE sql STABLE SECURITY DEFINER
-    SET search_path TO '"Fee_international"'
+    SET search_path TO "Fee_international", public
     AS $$
   SELECT owner_id FROM "Fee_international".staff_accounts
   WHERE staff_user_id = _user_id AND is_active = true
@@ -214,7 +214,7 @@ ALTER FUNCTION "Fee_international".get_staff_owner_id(_user_id uuid) OWNER TO po
 
 CREATE FUNCTION "Fee_international".handle_new_user() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
-    SET search_path TO '"Fee_international"'
+    SET search_path TO "Fee_international", public
     AS $$
 BEGIN
   INSERT INTO "Fee_international".profiles (user_id, email, full_name)
@@ -232,7 +232,7 @@ ALTER FUNCTION "Fee_international".handle_new_user() OWNER TO postgres;
 
 CREATE FUNCTION "Fee_international".handle_new_user_role() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
-    SET search_path TO '"Fee_international"'
+    SET search_path TO "Fee_international", public
     AS $$
 BEGIN
   INSERT INTO "Fee_international".user_roles (user_id, role)
@@ -250,7 +250,7 @@ ALTER FUNCTION "Fee_international".handle_new_user_role() OWNER TO postgres;
 
 CREATE FUNCTION "Fee_international".handle_new_user_settings() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
-    SET search_path TO '"Fee_international"'
+    SET search_path TO "Fee_international", public
     AS $$
 BEGIN
   INSERT INTO "Fee_international".settings (user_id, key, value) VALUES
@@ -270,7 +270,7 @@ ALTER FUNCTION "Fee_international".handle_new_user_settings() OWNER TO postgres;
 
 CREATE FUNCTION "Fee_international".has_role(_user_id uuid, _role "Fee_international".app_role) RETURNS boolean
     LANGUAGE sql STABLE SECURITY DEFINER
-    SET search_path TO '"Fee_international"'
+    SET search_path TO "Fee_international", public
     AS $$
   SELECT EXISTS (
     SELECT 1 FROM "Fee_international".user_roles
@@ -287,7 +287,7 @@ ALTER FUNCTION "Fee_international".has_role(_user_id uuid, _role "Fee_internatio
 
 CREATE FUNCTION "Fee_international".is_admin() RETURNS boolean
     LANGUAGE plpgsql SECURITY DEFINER
-    SET search_path TO '"Fee_international"'
+    SET search_path TO "Fee_international", public
     AS $$
 BEGIN
   RETURN EXISTS (
@@ -306,7 +306,7 @@ ALTER FUNCTION "Fee_international".is_admin() OWNER TO postgres;
 
 CREATE FUNCTION "Fee_international".is_staff_of(_staff_user_id uuid, _owner_id uuid) RETURNS boolean
     LANGUAGE sql STABLE SECURITY DEFINER
-    SET search_path TO '"Fee_international"'
+    SET search_path TO "Fee_international", public
     AS $$
   SELECT EXISTS (
     SELECT 1 FROM "Fee_international".staff_accounts
@@ -325,7 +325,7 @@ ALTER FUNCTION "Fee_international".is_staff_of(_staff_user_id uuid, _owner_id uu
 
 CREATE FUNCTION "Fee_international".update_updated_at_column() RETURNS trigger
     LANGUAGE plpgsql
-    SET search_path TO '"Fee_international"'
+    SET search_path TO "Fee_international", public
     AS $$
 BEGIN
   NEW.updated_at = now();
