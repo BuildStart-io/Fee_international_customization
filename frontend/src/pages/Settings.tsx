@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Save, MessageSquare, CreditCard, Copy, Check, Smartphone, RefreshCw, Wifi, WifiOff, Plus, Trash2, ArrowUp, ArrowDown, GripVertical, Clock, Lock, X } from "lucide-react";
+import { Loader2, Save, MessageSquare, CreditCard, Copy, Check, Smartphone, RefreshCw, Wifi, WifiOff, Plus, Trash2, ArrowUp, ArrowDown, GripVertical, Clock, Lock, X, Globe, Phone, Share2 } from "lucide-react";
 import WelcomeMediaUpload from "@/components/settings/WelcomeMediaUpload";
 import StaffManager from "@/components/settings/StaffManager";
 import { useStaffAccess } from "@/hooks/useStaffAccess";
@@ -73,6 +73,11 @@ export default function Settings() {
 
   // Delivery Settings
   const [freeDeliveryThreshold, setFreeDeliveryThreshold] = useState<number>(0);
+
+  // External Links & Support Contact
+  const [tiktokUrl, setTiktokUrl] = useState("");
+  const [staffPhone, setStaffPhone] = useState("");
+  const [websiteUrl, setWebsiteUrl] = useState("");
 
   // Order Notifications
   const [notificationPhone, setNotificationPhone] = useState("");
@@ -187,6 +192,13 @@ export default function Settings() {
             setInactivityFollowupEnabled(iVal?.enabled ?? false);
             setInactivityFollowupHours(String(iVal?.hours ?? 24));
             setInactivityFollowupEnabledAt(iVal?.enabled_at || null);
+            break;
+          }
+          case "external_links": {
+            const eVal = setting.value as any;
+            setTiktokUrl(eVal?.tiktok_url || "");
+            setStaffPhone(eVal?.staff_phone || "");
+            setWebsiteUrl(eVal?.website_url || "");
             break;
           }
         }
@@ -570,6 +582,14 @@ export default function Settings() {
     }
     setNotificationPhone(cleanPhone);
     saveSettings("order_notifications", { phone: cleanPhone });
+  };
+
+  const handleSaveExternalLinks = () => {
+    saveSettings("external_links", {
+      tiktok_url: tiktokUrl.trim(),
+      staff_phone: staffPhone.trim(),
+      website_url: websiteUrl.trim(),
+    });
   };
 
   const handleSaveOrderFollowup = () => {
@@ -1233,6 +1253,80 @@ export default function Settings() {
                     <Save className="mr-2 h-4 w-4" />
                   )}
                   Save Notifications
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* External Links & Support Contact */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Globe className="h-5 w-5" />
+                  External Links & Support Contact
+                </CardTitle>
+                <CardDescription>
+                  Configure official links and contact numbers for the AI chatbot. The bot will strictly use only these and will not create, guess, or hallucinate any unapproved URLs or phone numbers.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="tiktok-url" className="flex items-center gap-2">
+                    <Share2 className="h-4 w-4 text-muted-foreground" />
+                    TikTok Review / Feedback Link
+                  </Label>
+                  <Input
+                    id="tiktok-url"
+                    type="url"
+                    value={tiktokUrl}
+                    onChange={(e) => setTiktokUrl(e.target.value)}
+                    placeholder="e.g., https://www.tiktok.com/@feeinternational_reviews"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Shared when customers ask for reviews, proof, or before/after results. If left blank, the bot will not share any TikTok or social media link.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="staff-phone" className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    Staff / Support Telephone Number
+                  </Label>
+                  <Input
+                    id="staff-phone"
+                    type="tel"
+                    value={staffPhone}
+                    onChange={(e) => setStaffPhone(e.target.value)}
+                    placeholder="e.g., +94 77 123 4567 or 0771234567"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Provided when customers ask to speak with human staff, call support, or need escalation. If left blank, the bot will inform customers that support is handled inside this chat.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="website-url" className="flex items-center gap-2">
+                    <Globe className="h-4 w-4 text-muted-foreground" />
+                    Website URL / Online Store Link
+                  </Label>
+                  <Input
+                    id="website-url"
+                    type="url"
+                    value={websiteUrl}
+                    onChange={(e) => setWebsiteUrl(e.target.value)}
+                    placeholder="e.g., https://feeinternational.com"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Provided when customers ask for the website or choose Website Checkout. If left blank, the bot will only offer Cash on Delivery and Bank Transfer.
+                  </p>
+                </div>
+
+                <Button onClick={handleSaveExternalLinks} disabled={saving}>
+                  {saving ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="mr-2 h-4 w-4" />
+                  )}
+                  Save Links & Support
                 </Button>
               </CardContent>
             </Card>

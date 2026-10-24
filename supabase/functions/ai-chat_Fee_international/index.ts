@@ -115,10 +115,15 @@ serve(async (req) => {
     const faqs = faqsRes.data || [];
     const settings = settingsRes.data || [];
 
-    const welcomeMessage = settings.find(s => s.key === "welcome_message")?.value?.text || "Welcome! How can I help you?";
+    const welcomeMessage = settings.find(s => s.key === "welcome_message")?.value?.text || "Welcome to Fee international! 🌸 We specialize in premium face and body serums. How can we assist your skincare routine today?";
     const paymentInfo = settings.find(s => s.key === "payment_info")?.value || {};
     const deliverySettings = settings.find(s => s.key === "delivery_settings")?.value || {};
     const freeDeliveryThreshold = deliverySettings.free_delivery_threshold || 0;
+
+    const externalLinks = settings.find(s => s.key === "external_links")?.value || {};
+    const tiktokUrl = typeof externalLinks.tiktok_url === "string" ? externalLinks.tiktok_url.trim() : "";
+    const staffPhone = typeof externalLinks.staff_phone === "string" ? externalLinks.staff_phone.trim() : "";
+    const websiteUrl = typeof externalLinks.website_url === "string" ? externalLinks.website_url.trim() : "";
 
     const productCatalog = products.map(p => {
       let line = `- ${p.name}: Base price LKR ${p.price} (${p.product_type})`;
@@ -169,7 +174,7 @@ serve(async (req) => {
     }
 
     // Build FAQ context with IDs so AI can report which ones it used
-    const faqContext = faqs.map(f => 
+    const faqContext = faqs.map(f =>
       `[FAQ_ID:${f.id}] Q: ${f.question}\nA: ${f.answer}${f.products?.name ? ` (Related to: ${f.products.name})` : ""}`
     ).join("\n\n");
 
@@ -180,11 +185,65 @@ serve(async (req) => {
       .map(msg => `${msg.direction === "inbound" ? "Customer" : "Assistant"}: ${msg.message}`)
       .join("\n");
 
-const systemPrompt = `You are an intelligent WhatsApp chatbot assistant for a business. You help customers with:
-1. Product inquiries
-2. Answering FAQs
-3. Taking orders
-4. Providing payment information
+    const systemPrompt = `You are the official intelligent WhatsApp chatbot assistant for "Fee international", a premium skincare client specializing in face serums and body serums. You guide customers through a strict 10-step workflow:
+
+STEP 1 - WELCOME MESSAGE:
+- Warmly welcome the customer to Fee international and explicitly offer assistance with face and body serums.
+
+STEP 2 - LANGUAGE SELECTION:
+- Prompt the customer to choose their preferred language between Sinhala and English.
+
+STEP 3 - PRODUCT INTRODUCTION:
+- Introduce approved skincare products from the catalog below. Always share:
+  1. Brand ("Fee international")
+  2. Product name or code
+  3. Product type: explicitly state whether it is for the Face (Face Serum) or Body (Body Serum)
+  4. Product image (include using <IMAGE_URL> at the end)
+  5. Price in LKR
+  6. Bottle size/volume (e.g., 30ml, 50ml, 100ml)
+  7. Key ingredients
+  8. Benefits
+  9. Usage instructions (how to apply, morning/night)
+  10. Precautions (e.g. patch test, avoid eye contact, use SPF during daytime)
+
+STEP 4 - FAQS & CUSTOMER FEEDBACK:
+- Answer customer questions regarding usage, ingredients, prices, or delivery using the approved FAQ content below.
+- Reviews, Proof & Results:
+${tiktokUrl
+        ? `  - If the customer asks for reviews, results, proof, customer feedback, or before/after photos, share ONLY the approved official TikTok feedback link: ${tiktokUrl}`
+        : `  - No TikTok link is configured. If the customer asks for reviews, results, or social media links, politely explain that social media links are not available and offer to assist them directly with product details. You MUST NEVER create, guess, or share any unapproved TikTok or social media URL.`}
+- COMPLIANCE RULE: NEVER promise guaranteed results, and NEVER diagnose skin conditions. Advise consulting a dermatologist for severe skin concerns.
+- Human Staff / Phone Support:
+${staffPhone
+        ? `  - If the customer asks to speak with a human agent, call support, requests a hotline, or needs human staff intervention, provide ONLY this official staff telephone number: ${staffPhone}.`
+        : `  - No staff telephone number is configured. If the customer asks to call or speak to an agent, explain that customer support is provided directly inside this WhatsApp chat and our human team will reply here. You MUST NEVER create, guess, or share any phone number.`}
+
+STEP 5 - PRODUCT SELECTION:
+- Collect and record customer's chosen brand ("Fee international"), product name or code, product type (Face Serum or Body Serum), quantity, and size/variant.
+
+STEP 6 - PAYMENT METHOD SELECTION:
+- Ask customer to choose their preferred payment method:
+  1. Cash on Delivery (COD)
+  2. Bank Transfer ${websiteUrl ? `\n  3. Website checkout` : ``}
+
+STEP 7 - CUSTOMER DATA COLLECTION:
+- Request customer's: full name, complete delivery address, city/district, primary phone number, and an alternate phone number.
+- AVOID REPETITION: Do NOT repeatedly ask for information the customer has already provided. If they already gave their city, address, or phone, do not ask again.
+
+STEP 8 - TOTAL CALCULATION & ORDER SUMMARY:
+- Calculate Order Total: Product Subtotal + applicable Delivery/COD charges.
+- Present a clear order summary showing: selected items (name, type, size, quantity), calculated amounts (subtotal, delivery fee, grand total), customer details (name, address, city, primary phone, alternate phone), and payment method.
+
+STEP 9 - EXPLICIT CONFIRMATION:
+- Ask customer to explicitly confirm order details.
+- If customer requests changes, update the details and present a revised summary before getting final confirmation.
+
+STEP 10 - FINALIZATION & BILL GENERATION (BASED ON PAYMENT METHOD):
+- If Cash on Delivery (COD): Record the order, send a warm thank-you message, and provide an order bill showing the status as "Pending Collection". Include the <ORDER_JSON> tag.
+- If Bank Transfer: Send approved bank account details and exact payable amount, request a payment slip upload, acknowledge receipt of the slip, and state that order status remains "Pending Verification" until authorized staff confirm it. Forward slip reference to staff and include the <ORDER_JSON> tag.
+- If Website Checkout: ${websiteUrl
+        ? `Send ONLY the approved official website checkout link: ${websiteUrl}, explain that online payment handles the transaction, and refer payment-status checks to staff.`
+        : `Website checkout is NOT available or configured. If the customer asks for online/website payment, explain that we only accept Cash on Delivery and Bank Transfer. You MUST NEVER guess or make up a website link.`}
 
 IMPORTANT GUIDELINES:
 - Respond in the SAME LANGUAGE the customer uses. Auto-detect their language.
@@ -214,21 +273,27 @@ ${freeDeliveryThreshold > 0 ? `   - FREE DELIVERY THRESHOLD: If the order subtot
 - Sub-variants marked as REQUIRED must be selected by the customer before confirming an order. Always ask for required sub-variants if the customer hasn't specified them.
 - For payment, provide ALL configured payment account details to the customer. List every account with emoji separators:
 ${(() => {
-  const accounts = paymentInfo.accounts;
-  if (accounts && Array.isArray(accounts) && accounts.length > 0) {
-    return accounts.map((a: any, i: number) => {
-      const type = a.account_type || "bank";
-      const label = a.account_label || a.bank_name || "Not configured";
-      const number = a.account_number || "Not configured";
-      const name = a.account_name || "Not configured";
-      if (type === "crypto") return `  ${i + 1}. Crypto/Wallet: ${label}, Address/ID: ${number}, Name: ${name}`;
-      if (type === "digital") return `  ${i + 1}. Digital Wallet: ${label}, Account: ${number}, Name: ${name}`;
-      return `  ${i + 1}. Bank: ${label}, Account: ${number}, Name: ${name}`;
-    }).join("\n");
-  }
-  return `  Bank: ${paymentInfo.bank_name || "Not configured"}, Account: ${paymentInfo.account_number || "Not configured"}, Name: ${paymentInfo.account_name || "Not configured"}`;
-})()}
-- STRICT DATA BOUNDARY: You must ONLY use the product catalog, FAQs, and payment information provided below. Do NOT make up products, prices, features, or answers that are not explicitly listed. If a customer asks about something not covered, politely say you don't have that information and suggest they contact the business directly.
+        const accounts = paymentInfo.accounts;
+        if (accounts && Array.isArray(accounts) && accounts.length > 0) {
+          return accounts.map((a: any, i: number) => {
+            const type = a.account_type || "bank";
+            const label = a.account_label || a.bank_name || "Not configured";
+            const number = a.account_number || "Not configured";
+            const name = a.account_name || "Not configured";
+            if (type === "crypto") return `  ${i + 1}. Crypto/Wallet: ${label}, Address/ID: ${number}, Name: ${name}`;
+            if (type === "digital") return `  ${i + 1}. Digital Wallet: ${label}, Account: ${number}, Name: ${name}`;
+            return `  ${i + 1}. Bank: ${label}, Account: ${number}, Name: ${name}`;
+          }).join("\n");
+        }
+        return `  Bank: ${paymentInfo.bank_name || "Not configured"}, Account: ${paymentInfo.account_number || "Not configured"}, Name: ${paymentInfo.account_name || "Not configured"}`;
+      })()}
+- STRICT DATA BOUNDARY & ZERO GUESSING RULES:
+  - You must ONLY use the product catalog, FAQs, payment information, and official external links provided in this prompt.
+  - Do NOT make up products, prices, features, or answers that are not explicitly listed.
+  - TIKTOK LINK: ${tiktokUrl ? `The ONLY authorized TikTok link is "${tiktokUrl}". Do not output or mention any other TikTok handle or link.` : `NO TikTok or social link is configured. You are STRICTLY PROHIBITED from inventing, guessing, or sharing any TikTok or social media links.`}
+  - STAFF PHONE NUMBER: ${staffPhone ? `The ONLY authorized staff telephone number is "${staffPhone}". Do not output or mention any other phone number.` : `NO staff phone number is configured. You are STRICTLY PROHIBITED from inventing, guessing, or sharing any phone number.`}
+  - WEBSITE URL: ${websiteUrl ? `The ONLY authorized website URL is "${websiteUrl}". Do not output or mention any other website or URL.` : `NO website URL is configured. You are STRICTLY PROHIBITED from inventing, guessing, or sharing any website link or web address.`}
+  - NEVER create, guess, assume, or fabricate any URLs, phone numbers, addresses, or external services under ANY circumstances. If a customer asks about something not covered, politely state that you do not have that information and suggest they leave their inquiry here for the human team.
 
 PRODUCT IMAGES:
 - When a customer asks about a specific product that has images, include ALL the image URLs in separate <IMAGE_URL>url</IMAGE_URL> tags at the END of your response. Include all images for the product to give them a complete view.
@@ -361,7 +426,7 @@ CRITICAL SECURITY RULE:
     if (usedFaqsMatch && trackedFaqIds.length > 0) {
       const usedIds = usedFaqIds;
       const trackedUsedIds = usedIds.filter((id: string) => trackedFaqIds.includes(id));
-      
+
       if (trackedUsedIds.length > 0) {
         console.log(`Tracked FAQs used: ${trackedUsedIds.join(", ")} for phone ${phoneNumber}`);
         const usageLogs = trackedUsedIds.map((faqId: string) => ({
@@ -557,8 +622,13 @@ CRITICAL SECURITY RULE:
     cleanResponse = cleanResponse.replace(/\{[^{}]*"total_amount"[^}]*\}/g, "");
     // Remove any remaining JSON-like structures with 2+ key-value pairs
     cleanResponse = cleanResponse.replace(/\{\s*"[^"]+"\s*:[\s\S]*?\}/g, "");
-    // Remove any leftover image URLs on their own line (https://...supabase... patterns)
-    cleanResponse = cleanResponse.replace(/^https?:\/\/[^\s]+$/gm, "");
+    // Remove any leftover image URLs on their own line (https://...supabase... patterns) while preserving authorized external links
+    cleanResponse = cleanResponse.replace(/^https?:\/\/[^\s]+$/gm, (matchedUrl) => {
+      const trimmed = matchedUrl.trim();
+      if (tiktokUrl && (trimmed === tiktokUrl || trimmed.startsWith(tiktokUrl))) return matchedUrl;
+      if (websiteUrl && (trimmed === websiteUrl || trimmed.startsWith(websiteUrl))) return matchedUrl;
+      return "";
+    });
     // Remove standalone UUIDs that leak from FAQ IDs or correlation IDs
     cleanResponse = cleanResponse.replace(/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi, "");
     // Remove [FAQ_ID:...] references that may leak into response
