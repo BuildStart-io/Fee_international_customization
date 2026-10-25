@@ -718,7 +718,7 @@ CRITICAL SECURITY RULE:
 
     // Do not send images a 2nd time: if images were already sent to this customer, suppress them
     if (imageUrls.length > 0) {
-      const { count: priorImageCount } = await supabase
+      const { count: priorImageCount } = await supabase//j
         .from("conversations")
         .select("id", { count: "exact", head: true })
         .eq("user_id", userId)
