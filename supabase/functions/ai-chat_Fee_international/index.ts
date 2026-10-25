@@ -716,21 +716,21 @@ CRITICAL SECURITY RULE:
     const imageUrlMatches = Array.from(responseText.matchAll(/<IMAGE_URL>([\s\S]*?)<\/IMAGE_URL>/g));
     let imageUrls = imageUrlMatches.map(m => m[1].trim());
 
-    // // Do not send images a 2nd time: if images were already sent to this customer, suppress them
-    // if (imageUrls.length > 0) {
-    //   const { count: priorImageCount } = await supabase
-    //     .from("conversations")
-    //     .select("id", { count: "exact", head: true })
-    //     .eq("user_id", userId)
-    //     .eq("phone_number", phoneNumber)
-    //     .eq("direction", "outbound")
-    //     .eq("message_type", "image");
+    // Do not send images a 2nd time: if images were already sent to this customer, suppress them
+    if (imageUrls.length > 0) {
+      const { count: priorImageCount } = await supabase
+        .from("conversations")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .eq("phone_number", phoneNumber)
+        .eq("direction", "outbound")
+        .eq("message_type", "image");
 
-    //   if ((priorImageCount || 0) > 0) {
-    //     console.log(`Images already sent to ${phoneNumber} before (${priorImageCount} prior image messages). Suppressing 2nd-time images.`);
-    //     imageUrls = [];
-    //   }
-    // }
+      if ((priorImageCount || 0) > 0) {
+        console.log(`Images already sent to ${phoneNumber} before (${priorImageCount} prior image messages). Suppressing 2nd-time images.`);
+        imageUrls = [];
+      }
+    }
 
     const imageUrl = imageUrls.length > 0 ? imageUrls[0] : null;
     // Extract video URL if present
